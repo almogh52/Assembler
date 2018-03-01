@@ -6,6 +6,8 @@
 #define MAX_VALUES 40
 #define MAX_FILE_NAME_LENGTH 100
 #define AMOUNT_OF_INSTRUCTIONS 16
+#define INSTRUCTION_INTEGER_BITS 8
+#define DATA_INTEGER_BITS 10
 
 /* Bool enum, will be used as a boolean var in the program */
 typedef enum {

@@ -18,6 +18,8 @@ int main (int argc, char *argv[])
 {
   int i;
 
+  printf("Assembler (c) 2018 Almog Hamdani.\n\n"); /* Printing introduction */
+
   if (argc < 2) /* Invalid number of command line arguments */
   {
     fprintf(stderr, "Invalid number of arguments send to the assembler.\nEnter at least one file name to compile\nUsage: Assembler.exe [File 1 name] [File 2 name] ...");
@@ -63,6 +65,8 @@ bool analyzeFile(char *name)
     return false;
   }
 
+  printf("Compiling \"%s\":\n", fileName);
+
   /* ========== */
   /* FIRST PASS */
   /* ========== */
@@ -98,7 +102,7 @@ bool analyzeFile(char *name)
 
   if (error == true) /* If an error was found during first pass, print compilation faild */
   {
-    fprintf(stderr, "Errors were found in the file \"%s\" during first pass! Compilation failed!\n", fileName); /* Print error */
+    fprintf(stderr, "Errors were found in the file \"%s\" during first pass!\nCompilation failed!\n\n", fileName); /* Print error */
     return false;
   }
 
@@ -122,9 +126,11 @@ bool analyzeFile(char *name)
 
   if (error == true) /* If an error was found during second pass, print compilation faild */
   {
-    fprintf(stderr, "Errors were found in the file \"%s\" during second pass! Compilation failed!\n", fileName); /* Print error */
+    fprintf(stderr, "Errors were found in the file \"%s\" during second pass!\nCompilation failed!\n\n", fileName); /* Print error */
     return false;
   }
+
+  printf("Successfully compiled \"%s\"!\n\n", fileName);
 
   return true;
 }

@@ -61,26 +61,25 @@ bool isblank(char ch)
 char *convertToBase32(unsigned int value)
 {
   char *result;
-  int i = 30;
+  int i;
 
   /* Try allocate memory for convertion result */
-  if ((result = (char *)malloc(32 * sizeof(char))) == NULL)
+  if ((result = (char *)malloc(3 * sizeof(char))) == NULL)
   {
     fprintf(stderr, "Error allocating memory for base 32 result!\n"); /* Print error */
     exit(0);
   }
 
-  if (value == 0) /* If the value is 0 set result to ! (0) */
-    result[i--] = '!';
+  /* At start set !! as the result */
+  result[0] = '!';
+  result[1] = '!';
+  result[2] = 0;
 
-  /* While the number isn't 0, convert it to base 32 */
-  while (value)
+  for (i = 1; i >= 0 && value; i--) /* Going through the result str */
   {
-    result[i--] = base32[value % 32];
-    value /= 32;
+    result[i] = base32[value % 32]; /* Setting first char */
+    value /= 32; /* Dividing in 32 to get the second char */
   }
 
-  result[31] = 0; /* Set end of string */
-
-  return result + i + 1;
+  return result;
 }

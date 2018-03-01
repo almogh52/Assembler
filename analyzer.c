@@ -7,11 +7,12 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <math.h>
 
 void checkForLabel(line_t *);
 bool checkIfEmpty(char[]);
 void checkIsLabelValid(line_t *);
-bool stringIsValidInt(line_t *, char []);
+bool stringIsValidInt(line_t *, char [], int);
 void analyzeString(line_t *, char []);
 void analyzeInstruction(line_t *, int, char [], char []);
 operand_t analyzeOperand(line_t *, char []);
@@ -22,7 +23,7 @@ void printBits(size_t const size, void const * const ptr);
 void analyzeLine(line_t *line)
 {
   char *tok; /* This var will hold the current token(part of a string) that we are checking */
-  int i, j;
+  int i, j, temp;
   char values[MAX_VALUES][MAX_VALUE_LENGTH] = {{0}};
 
   if (line->input[0] == ';') /* If the first char in line after blanks is ; it means we have a comment and we need to skip this line */
@@ -41,11 +42,12 @@ void analyzeLine(line_t *line)
       return;
     } else
       printError(line, "Line have only a label without data!");
+      return;
   }
 
   tok = strtok(line->input, " \t"); /* Get token(token is a string seperated by space or tab) */
 
-  if (tok[0] == '.') /* It means we have a guideline sentence */
+  if (tok[0] == '.') /* It means we have a directive sentence */
   {
     line->symbol.pointer = dataCnt; /* Set the label's value to DC, current data line */
 
@@ -64,12 +66,14 @@ void analyzeLine(line_t *line)
     } else if (strcmp(tok, ".extern") == 0) /* If it's an external */
     {
       line->type = ext; /* Set type */
-    } else { /* Unknown guideline */
-      printError(line, "Unknown guideline \"%s\"", tok); /* Print error */
+    } else { /* Unknown directive */
+      printError(line, "Unknown directive \"%s\"", tok); /* Print error */
       line->type = unknown; /* Set type */
     }
   } else { /* It means we have an instruction sentence */
     line->symbol.pointer = instructionCnt; /* Set the label's value to IC, current instruction line */
+
+    line->instruction = NULL; /* Set instruction to be nothing */
 
     /* Check instruction name */
     for (i = 0; i < AMOUNT_OF_INSTRUCTIONS; i++)
@@ -101,7 +105,7 @@ void analyzeLine(line_t *line)
 
     if (tok == NULL || checkIfEmpty(tok)) /* No string */
     {
-      printError(line, "Missing string after \".string\" guideline!");
+      printError(line, "Missing string after \".string\" directive!");
       return;
     }
     analyzeString(line, tok);
@@ -111,14 +115,22 @@ void analyzeLine(line_t *line)
 
     if (tok == NULL) /* No values for the struct */
     {
-      printError(line, "Missing struct values after \".struct\" guideline!");
+      printError(line, "Missing struct values after \".struct\" directive!");
       return;
     }
 
-    if (stringIsValidInt(line, tok)) /* Token is a valid int */
+    temp = -1; /* Set for missing comma check */
+    sscanf(tok, "%*s %*s%n", &temp); /* Check for a pattern, if there is a string, a blank and then another string it means we have a possible missing comma */
+    if(temp != -1) /* If temp isn't -1(Start value), it means the pattern is found */
+    {
+      printError(line, "Missing comma between struct's values \"%s\"", tok); /* Print error */
+      return;
+    }
+
+    if (stringIsValidInt(line, tok, DATA_INTEGER_BITS)) /* Token is a valid int */
       line->lineData.strct.num = atoi(tok);
 
-    tok = strtok(NULL, ""); /* Get the rest of the line, should be string */
+    tok = strtok(NULL, ", "); /* Get the rest of the line or if another param was found, should be string */
 
     if (tok == NULL)
     {
@@ -131,16 +143,30 @@ void analyzeLine(line_t *line)
     }
     analyzeString(line, tok);
 
+    tok = strtok(NULL, ""); /* Get the rest of the line, if there is more params */
+    if (tok != NULL) /* If another parameter was found, send an error */
+    {
+      printError(line, "Too much values for sturct! Struct values must be [integer, string]");
+      return;
+    }
+
   } else { /* The rest of the types */
 
-    /* Get all operands into the operands array */
-    for (i = 0; i < MAX_VALUES && (tok = strtok(NULL, ",")) != NULL; i++) /* Get a new token */
-      strcpy(values[i], tok); /* Copy the operand */
+    if (!checkIfEmpty(tok + strlen(tok) + 1)) /* Check if the rest of the line isn't empty */
+    {
+      /* Get all operands into the operands array */
+      for (i = 0; i < MAX_VALUES && (tok = strtok(NULL, ",")) != NULL; i++) /* Get a new token */
+        strcpy(values[i], tok); /* Copy the operand */
+    } else {
+      i = 0; /* Set values to 0 if the rest is empty */
+    }
 
     switch(line->type)
     {
       case instruction:
-        if (values[1][0] == 0) /* If second opernd is null, send first operand as destination operand */
+        if (values[0] == 0 && values[1] == 0)
+          analyzeInstruction(line, i, "", "");
+        else if (values[1][0] == 0) /* If second opernd is null, send first operand as destination operand */
           analyzeInstruction(line, i, "", values[0]);
         else
           analyzeInstruction(line, i, values[0], values[1]);
@@ -152,17 +178,24 @@ void analyzeLine(line_t *line)
       case data:
         if (i >= MAX_VALUES) /* Too many data values */
           printError(line, "Too many data values in line"); /* Print error */
+        else if (i == 0) /* No values are entered */
+          printError(line, "No values entered for data directive"); /* Print error */
 
         line->lineData.data.count = i; /* Set the amount of numbers */
         for (j = 0; j < i; j++) /* Going through all the the operands found */
-          if (stringIsValidInt(line, values[j])) /* If value is a valid integer, set it in the data values */
+        {
+          temp = -1; /* Set for missing comma check */
+          sscanf(values[j], "%*s %*s%n", &temp); /* Check for a pattern, if there is a string, a blank and then another string it means we have a possible missing comma */
+          if(temp != -1) /* If temp isn't -1(Start value), it means the pattern is found */
+            printError(line, "Missing comma between values \"%s\"", values[j]); /* Print error */
+          else if (stringIsValidInt(line, values[j], DATA_INTEGER_BITS)) /* If value is a valid integer, set it in the data values */
             line->lineData.data.numbers[j] = atoi(values[j]);
-
+        }
         break;
 
       case ent:
       case ext:
-        strtok(values[0], " \t"); /* Remove spaces */
+        strcpy(values[0], strtok(values[0], " \t")); /* Remove spaces */
 
         if (checkIfEmpty(values[0])) /* No values entered */
         {
@@ -187,6 +220,7 @@ void analyzeLine(line_t *line)
           return;
         }
 
+        line->lineData.extent.symbol.pointer = 0;
         strcpy(line->lineData.extent.symbol.name, values[0]); /* Set symbol name */
         line->lineData.extent.symbol.type = line->type; /* Set symbol' type as the line' type, extern or entry */
 
@@ -227,7 +261,7 @@ void analyzeString(line_t *line, char str[])
         return;
       } else if (!stringStarted) /* If string hasn't found yet and characters are found */
       {
-        printError(line, "Invalid characters before string. The string must start with a '\"' and end with '\"'!");
+        printError(line, "Invalid characters before string. The string must start with a \" and end with \"!");
         return;
       } else { /* If we in the string, copy the char to it's place */
         if (line->type == string) /* If line type is string */
@@ -357,7 +391,6 @@ void analyzeInstruction(line_t *line, int ops, char op1[], char op2[])
   }
 
   /* Amount of operands check */
-
   if (line->instruction->ops > ops) /* If we got a fewer operands than needed */
       printError(line, "Missing operands! The instruction \"%s\" must have %d operands", line->instruction->name, line->instruction->ops);
   else if (line->instruction->ops < ops) /* If we got too many operands than needed */
@@ -379,7 +412,7 @@ operand_t analyzeOperand(line_t *line, char *operand)
 
   if (operand[0] == '#') /* It means we have a possible number */
   {
-    if (stringIsValidInt(line, operand + 1)) /* Check if the number that is after the # is a valid int */
+    if (stringIsValidInt(line, operand + 1, INSTRUCTION_INTEGER_BITS)) /* Check if the number that is after the # is a valid int */
       op.data.number = atoi(operand + 1); /* Set the operand in the line data using atoi(string to int) */
 
     op.type = number; /* Set type */
@@ -437,7 +470,7 @@ register_t isRegister(char *operand)
     return -1;
 }
 
-bool stringIsValidInt(line_t *line, char str[])
+bool stringIsValidInt(line_t *line, char str[], int rangeBits)
 {
   int i;
   bool numFound = false, numFinished = false;
@@ -461,6 +494,12 @@ bool stringIsValidInt(line_t *line, char str[])
         numFound = true;
     } else if (numFound == true && numFinished != true) /* If number is found but not finished yet and we found a blank so we need to set it to finished */
       numFinished = true;
+  }
+
+  if (atoi(str) < -pow(2, rangeBits - 1) || atoi(str) > pow(2, rangeBits - 1) - 1) /* Out of range integer */
+  {
+    printError(line, "Invalid number \"%s\". The number must in range of %.2f to %.2f", str, -pow(2, rangeBits - 1), pow(2, rangeBits - 1) - 1);
+    return false;
   }
 
   return true;
