@@ -8,6 +8,7 @@
 #include "utils.h"
 
 #define START_OF_PROGRAM_IN_MEMORY 100
+#define BASE32_STR_RESULT_LEN 3
 
 bool analyzeFile(char *);
 bool createObjectFile(char *);
@@ -47,6 +48,11 @@ int main (int argc, char *argv[])
   return 0;
 }
 
+/**
+* This function analyzes a file and encodes it.
+* Parameters: The name of the file to be analyzed and encoded.
+* Return value: None.
+*/
 bool analyzeFile(char *name)
 {
   bool error = false;
@@ -135,6 +141,11 @@ bool analyzeFile(char *name)
   return true;
 }
 
+/**
+* This function creates an object file that will contain the encoded file that was created from the original assembly file.
+* Parameters: The name of the wanted file.
+* Return value: None.
+*/
 bool createObjectFile(char *name)
 {
   FILE *fd;
@@ -142,6 +153,14 @@ bool createObjectFile(char *name)
   instruction_node_t *instructionPtr;
   data_node_t *dataPtr;
   int address = START_OF_PROGRAM_IN_MEMORY;
+  char *result1, *result2;
+
+  /* Try allocate memory for convertion result */
+  if ((result1 = (char *)malloc(BASE32_STR_RESULT_LEN * sizeof(char))) == NULL || (result2 = (char *)malloc(BASE32_STR_RESULT_LEN * sizeof(char))) == NULL)
+  {
+    fprintf(stderr, "Error allocating memory for base 32 result!\n"); /* Print error */
+    exit(0);
+  }
 
   sprintf(fileName, "%s.ob", name); /* Format the new file name, add to it .ob */
 
@@ -151,13 +170,13 @@ bool createObjectFile(char *name)
     return false;
   }
 
-  fprintf(fd, "%s %s\n", convertToBase32(instructionCnt - START_OF_PROGRAM_IN_MEMORY), convertToBase32(dataCnt)); /* Print to the file the length of the instruction' words and the length of the data in base 32 */
+  fprintf(fd, "%s %s\n\n", convertToBase32(result1, instructionCnt - START_OF_PROGRAM_IN_MEMORY), convertToBase32(result2, dataCnt)); /* Print to the file the length of the instruction' words and the length of the data in base 32 */
 
   instructionPtr = instructionHead; /* Point ptr to line linked list */
   /* While the item exists, the list didn't end */
   while (instructionPtr)
   {
-    fprintf(fd, "%s %s\n", convertToBase32(address), convertToBase32(instructionPtr->data.value)); /* Print the word and it's address in base 32 to the file */
+    fprintf(fd, "%s %s\n", convertToBase32(result1, address), convertToBase32(result2, instructionPtr->data.value)); /* Print the word and it's address in base 32 to the file */
 
     address++; /* Increase the instruction counter */
     instructionPtr = instructionPtr->next; /* Point ptr to the next item in the list */
@@ -167,7 +186,7 @@ bool createObjectFile(char *name)
   /* While the item exists, the list didn't end */
   while (dataPtr)
   {
-    fprintf(fd, "%s %s\n", convertToBase32(address), convertToBase32(dataPtr->data.value)); /* Print the word and it's address in base 32 to the file */
+    fprintf(fd, "%s %s\n", convertToBase32(result1, address), convertToBase32(result2, dataPtr->data.value)); /* Print the word and it's address in base 32 to the file */
 
     address++; /* Increase the instruction counter */
     dataPtr = dataPtr->next; /* Point ptr to the next item in the list */
@@ -175,14 +194,31 @@ bool createObjectFile(char *name)
 
   fclose (fd); /* Close file */
 
+  /* Free the allocated memory for the base 32 result */
+  free(result1);
+  free(result2);
+
   return true;
 }
 
+/**
+* This function creates an entry file for the compiled file.
+* Parameters: The name of the wanted file.
+* Return value: None.
+*/
 void createEntriesFile(char *name)
 {
   FILE *fd;
   char fileName[MAX_FILE_NAME_LENGTH];
   symbol_node_t *symbolPtr;
+  char *result;
+
+  /* Try allocate memory for convertion result */
+  if ((result = (char *)malloc(BASE32_STR_RESULT_LEN * sizeof(char))) == NULL)
+  {
+    fprintf(stderr, "Error allocating memory for base 32 result!\n"); /* Print error */
+    exit(0);
+  }
 
   sprintf(fileName, "%s.ent", name); /* Format the new file name, add to it .ent */
 
@@ -197,17 +233,32 @@ void createEntriesFile(char *name)
   while (symbolPtr)
   {
     if (symbolPtr->data.type == ent)
-      fprintf(fd, "%s %s\n", symbolPtr->data.name, convertToBase32(symbolPtr->data.pointer)); /* Print the symbol and it's address in base 32 to the file */
+      fprintf(fd, "%s %s\n", symbolPtr->data.name, convertToBase32(result, symbolPtr->data.pointer)); /* Print the symbol and it's address in base 32 to the file */
 
     symbolPtr = symbolPtr->next; /* Point ptr to the next item in the list */
   }
+
+  free(result); /* Free the allocated memory for the base 32 result */
 }
 
+/**
+* This function creates an external file for the compiled file.
+* Parameters: The name of the wanted file
+* Return value: None.
+*/
 void createExternalsFile(char *name)
 {
   FILE *fd;
   char fileName[MAX_FILE_NAME_LENGTH];
   line_node_t *linePtr;
+  char *result;
+
+  /* Try allocate memory for convertion result */
+  if ((result = (char *)malloc(BASE32_STR_RESULT_LEN * sizeof(char))) == NULL)
+  {
+    fprintf(stderr, "Error allocating memory for base 32 result!\n"); /* Print error */
+    exit(0);
+  }
 
   sprintf(fileName, "%s.ext", name); /* Format the new file name, add to it .ent */
 
@@ -224,10 +275,12 @@ void createExternalsFile(char *name)
     if (linePtr->data.type == instruction)
     {
       if (linePtr->data.lineData.instruction.srcOp.data.symbol.type == ext) /* If source operand is external */
-        fprintf(fd, "%s %s\n", linePtr->data.lineData.instruction.srcOp.data.symbol.name, convertToBase32(linePtr->data.lineData.instruction.srcOp.data.symbol.pointer)); /* Print the symbol and it's encode address in base 32 to the file */
+        fprintf(fd, "%s %s\n", linePtr->data.lineData.instruction.srcOp.data.symbol.name, convertToBase32(result, linePtr->data.lineData.instruction.srcOp.data.symbol.pointer)); /* Print the symbol and it's encode address in base 32 to the file */
       else if (linePtr->data.lineData.instruction.dstOp.data.symbol.type == ext) /* If destination operand is external */
-        fprintf(fd, "%s %s\n", linePtr->data.lineData.instruction.dstOp.data.symbol.name, convertToBase32(linePtr->data.lineData.instruction.dstOp.data.symbol.pointer)); /* Print the symbol and it's encode address in base 32 to the file */
+        fprintf(fd, "%s %s\n", linePtr->data.lineData.instruction.dstOp.data.symbol.name, convertToBase32(result, linePtr->data.lineData.instruction.dstOp.data.symbol.pointer)); /* Print the symbol and it's encode address in base 32 to the file */
     }
     linePtr = linePtr->next; /* Point ptr to the next item in the list */
   }
+
+  free(result); /* Free the allocated memory for the base 32 result */
 }

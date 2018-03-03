@@ -8,6 +8,11 @@
 
 void recheckOperand(line_t *, operand_t *);
 
+/**
+* This function is rechecking the line in the second pass, if found errors, it will print them
+* Parameters: The line.
+* Return value: None.
+*/
 void recheckLine(line_t *line)
 {
   symbol_t *data;
@@ -26,6 +31,11 @@ void recheckLine(line_t *line)
   }
 }
 
+/**
+* This function is rechecking an operand from a line in the code, if found errors, it will print them.
+* Parameters: The line and the operand to be checked.
+* Return value: None.
+*/
 void recheckOperand(line_t *line, operand_t *op)
 {
   symbol_t *data;

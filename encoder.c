@@ -10,6 +10,11 @@ void encodeRegisters(operand_t, operand_t);
 void encodeSymbol(symbol_t *);
 void encodeStructField(int);
 
+/**
+* This function increases the instruction counter by the size that is needed by the line.
+* Parameters: The line.
+* Return value: None.
+*/
 void addInstructionSize(line_t *line)
 {
   instructionCnt++; /* Any instruction must have 1 word which will include the operation itself */
@@ -57,6 +62,11 @@ void addInstructionSize(line_t *line)
   }
 }
 
+/**
+* This function encodes data that is specificed in a certain line.
+* Parameters: The line that contains the data to be encoded.
+* Return value: None.
+*/
 void encodeData(line_t *line)
 {
   int i;
@@ -110,6 +120,11 @@ void encodeData(line_t *line)
   }
 }
 
+/**
+* This function encodes instruction that is specificed in a certain line.
+* Parameters: The line that contains the instruction to be encoded.
+* Return value: None.
+*/
 void encodeInstruction(line_t *line)
 {
   encodeOperation(line); /* Start with encoding the operation */
@@ -162,6 +177,11 @@ void encodeInstruction(line_t *line)
   }
 }
 
+/**
+* This function encodes the operation of an instruction in a line.
+* Parameters: The line that contains the instruction.
+* Return value: None.
+*/
 void encodeOperation(line_t *line)
 {
   word_t word = {{0}};
@@ -179,6 +199,11 @@ void encodeOperation(line_t *line)
   addInstructionToList(word);
 }
 
+/**
+* This function encodes a number to the instruction linked list.
+* Parameters: The number to be encoded.
+* Return value: None.
+*/
 void encodeNumber(int number)
 {
   word_t word = {{0}};
@@ -189,6 +214,11 @@ void encodeNumber(int number)
   addInstructionToList(word);
 }
 
+/**
+* This function encodes registers into the instruction linked list.
+* Parameters: The operands that are registers.
+* Return value: None.
+*/
 void encodeRegisters(operand_t srcOp, operand_t dstOp)
 {
   word_t word = {{0}};
@@ -204,6 +234,11 @@ void encodeRegisters(operand_t srcOp, operand_t dstOp)
   addInstructionToList(word);
 }
 
+/**
+* This function encodes a symbol into the instruction linked list.
+* Parameters: The symbol that has to encoded.
+* Return value: None.
+*/
 void encodeSymbol(symbol_t *symbol)
 {
   word_t word = {{0}};
@@ -221,6 +256,11 @@ void encodeSymbol(symbol_t *symbol)
 
 }
 
+/**
+* This function encodes a struct field into the instruction linked list.
+* Parameters: The field of the struct.
+* Return value: None.
+*/
 void encodeStructField(int field)
 {
   word_t word = {{0}};

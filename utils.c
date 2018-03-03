@@ -8,7 +8,11 @@
 
 const char base32[32] = {'!', '@', '#', '$', '%', '^', '&', '*', '<', '>', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'};
 
-/* TO DO: API, add line, file */
+/**
+* This is printing an error in a specific line to stderr.
+* Parameters: The line and the format of the message with optional parameters after it that will be used in the format.
+* Return value: None.
+*/
 void printError(line_t *line, char *f, ...)
 {
   va_list arg; /* This var will store the extra arguments */
@@ -22,6 +26,11 @@ void printError(line_t *line, char *f, ...)
   va_end(arg); /* Release the pointer */
 }
 
+/**
+* This function updates all the data symbols in the symbol list with a specific offset
+* Parameters: The offset.
+* Return value: None.
+*/
 void updateDataSymbolsWithOffset(int offset)
 {
   symbol_node_t *ptr = symbolHead;
@@ -36,7 +45,11 @@ void updateDataSymbolsWithOffset(int offset)
   }
 }
 
-
+/**
+* This is checking if a certain symbol exists.
+* Parameters: The symbol.
+* Return value: The symbol from the symbol list if found and false otherwise.
+*/
 symbol_t *checkIfSymbolExists(symbol_t symbol)
 {
   symbol_node_t *ptr = symbolHead;
@@ -53,22 +66,24 @@ symbol_t *checkIfSymbolExists(symbol_t symbol)
   return NULL;
 }
 
+/**
+* This is checking if a character is a blank.
+* Parameters: The character to be checked.
+* Return value: True if it blank and false otherwise.
+*/
 bool isblank(char ch)
 {
   return ch == ' ' || ch == '\t' ? true : false;
 }
 
-char *convertToBase32(unsigned int value)
+/**
+* This function converts a value to base 32 that is composed of 2 characters in the 'weird' 32 base.
+* Parameters: The string to store it in and the value to be converted.
+* Return value: The string.
+*/
+char *convertToBase32(char *result, unsigned int value)
 {
-  char *result;
   int i;
-
-  /* Try allocate memory for convertion result */
-  if ((result = (char *)malloc(3 * sizeof(char))) == NULL)
-  {
-    fprintf(stderr, "Error allocating memory for base 32 result!\n"); /* Print error */
-    exit(0);
-  }
 
   /* At start set !! as the result */
   result[0] = '!';

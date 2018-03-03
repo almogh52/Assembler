@@ -37,7 +37,7 @@
       return true; \
     }
 
-CREATE_LINKED_LIST(addInstructionToList, instruction_node_t, word_t, instructionCnt, instructionHead)
-CREATE_LINKED_LIST(addDataToList, data_node_t, word_t, dataCnt, dataHead)
-CREATE_LINKED_LIST(addSymbolToList, symbol_node_t, symbol_t, symbolCnt, symbolHead)
-CREATE_LINKED_LIST(addLineToList, line_node_t, line_t, lineCnt, lineHead)
+CREATE_LINKED_LIST(addInstructionToList, instruction_node_t, word_t, instructionCnt, instructionHead) /* This will hold the instructions, the code part of the input file */
+CREATE_LINKED_LIST(addDataToList, data_node_t, word_t, dataCnt, dataHead) /* This will hold the data, the data part of the input file, such as string, structs and more */
+CREATE_LINKED_LIST(addSymbolToList, symbol_node_t, symbol_t, symbolCnt, symbolHead) /* This will hold the symbols that were found in the file */
+CREATE_LINKED_LIST(addLineToList, line_node_t, line_t, lineCnt, lineHead) /* This will hold the formatted lines of the file */

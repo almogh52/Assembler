@@ -109,6 +109,7 @@ typedef struct {
   } data;
 } operand_t;
 
+/* This will contain the formatted line and it supporting any available format */
 typedef struct {
   bool error; /* Error was found in the line */
   int lineNumber;

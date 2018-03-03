@@ -23,6 +23,7 @@
     } \
   }
 
+  /* Creating headers for each list, the description of the lists are available in the .c file */
   CREATE_LINKED_LIST_HEADERS(addInstructionToList, instruction_node_t, word_t, instructionCnt, instructionHead)
   CREATE_LINKED_LIST_HEADERS(addDataToList, data_node_t, word_t, dataCnt, dataHead)
   CREATE_LINKED_LIST_HEADERS(addSymbolToList, symbol_node_t, symbol_t, symbolCnt, symbolHead)
