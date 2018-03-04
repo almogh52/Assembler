@@ -1,3 +1,12 @@
+/**
+* Made by © 2018 Almog Hamdani
+* linked_list.h
+*
+* This is the header file of the linked_list.c
+* It contains the macro to create header for each list and creates for them headers.
+* It also include a macro to free a list and it can be called from any function.
+**/
+
 /* This macro will be used to create the list headers, any kind of data type */
 #define CREATE_LINKED_LIST_HEADERS(funcName, nodeType, dataType, counter, head) \
   typedef struct nodeType { \

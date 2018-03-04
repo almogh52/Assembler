@@ -1,3 +1,12 @@
+/**
+* Made by © 2018 Almog Hamdani
+* utils.c
+*
+* This file is incharge of all the utils functions.
+* It does the conversion to base 32.
+* It prints the errors in a specific format.
+**/
+
 #include "types.h"
 #include "linked_list.h"
 #include "utils.h"
@@ -5,6 +14,8 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>
+
+#define BASE_32 32
 
 const char base32[32] = {'!', '@', '#', '$', '%', '^', '&', '*', '<', '>', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'};
 
@@ -92,9 +103,58 @@ char *convertToBase32(char *result, unsigned int value)
 
   for (i = 1; i >= 0 && value; i--) /* Going through the result str */
   {
-    result[i] = base32[value % 32]; /* Setting first char */
-    value /= 32; /* Dividing in 32 to get the second char */
+    result[i] = base32[value % BASE_32]; /* Setting first char */
+    value /= BASE_32; /* Dividing in 32 to get the second char */
   }
 
   return result;
+}
+
+/**
+* This function checks if an externals file is needed.
+* Parameters: None.
+* Return value: True if an externals file is needed or false otherwise.
+*/
+bool checkIfExternalsFileIsNeeded()
+{
+  bool found = false;
+  line_node_t *linePtr;
+
+  linePtr = lineHead; /* Set to point to list' head */
+
+  /* Go through the list and check if external is found, if found break and return */
+  while (linePtr && !found)
+  {
+    if (linePtr->data.type == instruction)
+      if (linePtr->data.lineData.instruction.srcOp.data.symbol.type == ext || linePtr->data.lineData.instruction.dstOp.data.symbol.type == ext) /* If source or destination operand is external */
+        found = true; /* Set found to true */
+
+    linePtr = linePtr->next; /* Move line pointer to the next item */
+  }
+
+  return found;
+}
+
+/**
+* This function checks if an entries file is needed.
+* Parameters: None.
+* Return value: True if an entries file is needed or false otherwise.
+*/
+bool checkIfEntriesFileIsNeeded()
+{
+  bool found = false;
+  symbol_node_t *symbolPtr;
+
+  symbolPtr = symbolHead; /* Set to point to list' head */
+
+  /* Go through the list and check if entry is found, if found break and return */
+  while (symbolPtr && !found)
+  {
+    if (symbolPtr->data.type == ent) /* If an entry was found */
+      found = true; /* Set found to true */
+
+    symbolPtr = symbolPtr->next; /* Move symbol pointer to the next item */
+  }
+
+  return found;
 }

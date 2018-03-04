@@ -1,3 +1,10 @@
+/**
+* Made by © 2018 Almog Hamdani
+* types.h
+*
+* This is the header file that includes all the different kinds of types.
+* It also include necessary constants for all the files.
+**/
 
 #define MAX_LINE_LENGTH 81
 #define MAX_LABEL_LENGTH 30

@@ -1,3 +1,12 @@
+/**
+* Made by © 2018 Almog Hamdani
+* second_pass.c
+*
+* This file is incharge of all the second pass functions.
+* This is rechecking all the lines in the code to see that there are no more issues.
+* If no issues were found, it sends the line to be encoded.
+**/
+
 #include "types.h"
 #include "linked_list.h"
 #include "utils.h"

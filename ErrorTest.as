@@ -1,9 +1,8 @@
-; err.as
-abcdef12345678901234567890123456789012345678901234567
+; Error file
+abcdef123456789012345678901234567890123456789
 STR :		.string 	"abcdef"
 STR2:.string 	"abcdef"
-str:			.string 	"abcdef1234567890123456789012345"
-
+str:			.string 	"abcdef123456789012345678901234567890123456789012345678901234"
 STR3:		. string 	"abcdef
 			.string 	asdfghj
 LENGTH:		.data		6,-9 , 15 , 1230

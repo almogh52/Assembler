@@ -1,3 +1,13 @@
+/**
+* Made by © 2018 Almog Hamdani
+* file_manager.c
+*
+* This file is incharge of all the file functions.
+* It includes the main function which manages the assembler.
+* It opens each input file and send it to analyzed and encoded.
+* After that, he creates the externals file and entries file if needed.
+**/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -33,8 +43,11 @@ int main (int argc, char *argv[])
     {
       if(createObjectFile(argv[i])) /* Create object file, if the file was created successfully, create entry and extern files */
       {
-        createEntriesFile(argv[i]);
-        createExternalsFile(argv[i]);
+        if (checkIfEntriesFileIsNeeded()) /* If entries file is needed, create it */
+          createEntriesFile(argv[i]);
+
+        if (checkIfExternalsFileIsNeeded()) /* If externals file is needed, create it */
+          createExternalsFile(argv[i]);
       }
     }
 
@@ -43,6 +56,12 @@ int main (int argc, char *argv[])
     FREE_LIST(data_node_t, dataHead)
     FREE_LIST(symbol_node_t, symbolHead)
     FREE_LIST(line_node_t, lineHead)
+
+    /* Reset all list's counters */
+    instructionCnt = 0;
+    dataCnt = 0;
+    lineCnt = 0;
+    symbolCnt = 0;
   }
 
   return 0;

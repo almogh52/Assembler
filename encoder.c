@@ -1,8 +1,20 @@
+/**
+* Made by © 2018 Almog Hamdani
+* encoder.c
+*
+* This file is incharge of all the encode functions.
+* It converts each given line to binary in the correct format.
+**/
+
 #include "types.h"
 #include "linked_list.h"
 #include "encoder.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#define ABSOLUTE 0
+#define EXTERNAL 1
+#define RELOCATABLE 2
 
 void encodeOperation(line_t *);
 void encodeNumber(int);
@@ -194,7 +206,7 @@ void encodeOperation(line_t *line)
   if (line->lineData.instruction.dstOp.type != empty) /* If the source operand isn't empty, set it's source address mode */
     word.operation.dstAddressMode = line->lineData.instruction.dstOp.type;
 
-  word.operation.type = 0; /* Set word' type to absolute, operation word is always absolute */
+  word.operation.type = ABSOLUTE; /* Set word' type to absolute, operation word is always absolute */
 
   addInstructionToList(word);
 }
@@ -209,7 +221,7 @@ void encodeNumber(int number)
   word_t word = {{0}};
 
   word.immediateOperand.value = number; /* Set operand' value to the number */
-  word.immediateOperand.type = 0; /* Set word' type to absolute, immediate operand is always absolute */
+  word.immediateOperand.type = ABSOLUTE; /* Set word' type to absolute, immediate operand is always absolute */
 
   addInstructionToList(word);
 }
@@ -229,7 +241,7 @@ void encodeRegisters(operand_t srcOp, operand_t dstOp)
   if (dstOp.type == reg) /* If destination operand is a register, set it's number in the correct location */
     word.registersOperand.dstReg = dstOp.data.reg;
 
-  word.registersOperand.type = 0; /* Set word' type to absolute, registers operand is always absolute */
+  word.registersOperand.type = ABSOLUTE; /* Set word' type to absolute, registers operand is always absolute */
 
   addInstructionToList(word);
 }
@@ -247,10 +259,10 @@ void encodeSymbol(symbol_t *symbol)
 
   if (symbol->type == ext) /* If symbol is extern, set word' type to extern and save encode address for entries file, in the pointer of the symbol */
   {
-    word.addressOperand.type = 1;
+    word.addressOperand.type = EXTERNAL;
     symbol->pointer = instructionCnt;
   } else /* If symbol is local, set word' type to relocatable */
-    word.addressOperand.type = 2;
+    word.addressOperand.type = RELOCATABLE;
 
   addInstructionToList(word);
 
@@ -266,7 +278,7 @@ void encodeStructField(int field)
   word_t word = {{0}};
 
   word.structOperandField.field = field; /* Set operand' value to the field */
-  word.structOperandField.type = 0; /* Set word' type to absolute, struct field is always absolute */
+  word.structOperandField.type = ABSOLUTE; /* Set word' type to absolute, struct field is always absolute */
 
   addInstructionToList(word);
 }

@@ -1,3 +1,11 @@
+/**
+* Made by © 2018 Almog Hamdani
+* linked_list.c
+*
+* This file is incharge of all the linked lists.
+* It creates 4 linked lists using a macro that creates a function that adds item to them.
+**/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "types.h"

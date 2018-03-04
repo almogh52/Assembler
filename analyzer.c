@@ -1,3 +1,11 @@
+/**
+* Made by © 2018 Almog Hamdani
+* analyzer.c
+*
+* This file is incharge of all the analyze functions, and the first pass.
+* It takes each line in the input file and format it into the line type which will be later used to encode the line.
+**/
+
 #include "types.h"
 #include "analyzer.h"
 #include "utils.h"
@@ -20,6 +28,11 @@ register_t isRegister(char *);
 bool checkIsSymbolValid(line_t *, char *);
 void printBits(size_t const size, void const * const ptr);
 
+/**
+* This function analyzes a line in the file and formats it into the line type.
+* Parameters: The pointer to the line type.
+* Return value: None.
+*/
 void analyzeLine(line_t *line)
 {
   char *tok; /* This var will hold the current token(part of a string) that we are checking */
@@ -130,7 +143,7 @@ void analyzeLine(line_t *line)
     if (stringIsValidInt(line, tok, DATA_INTEGER_BITS)) /* Token is a valid int */
       line->lineData.strct.num = atoi(tok);
 
-    tok = strtok(NULL, ", "); /* Get the rest of the line or if another param was found, should be string */
+    tok = strtok(NULL, ","); /* Get the rest of the line or if another param was found, should be string */
 
     if (tok == NULL)
     {
@@ -236,6 +249,11 @@ void analyzeLine(line_t *line)
     encodeData(line);
 }
 
+/**
+* This function analyzes a string that should be a parameter, it checks its valid and inform of errors to the user.
+* Parameters: The pointer to the line type and the string.
+* Return value: None.
+*/
 void analyzeString(line_t *line, char str[])
 {
   int i, j = 0;
@@ -244,31 +262,28 @@ void analyzeString(line_t *line, char str[])
   /* Going through the entire string */
   for (i = 0; str[i]; i++)
   {
-    if (!isblank(str[i])) /* If current char isn't blank */
+    if (!stringStarted && str[i] == '\"') /* If the start of the string is found */
     {
-      if (!stringStarted && str[i] == '\"') /* If the start of the string is found */
-      {
-        stringStarted = true;
-      } else if (stringStarted && str[i] == '\"' && !stringEnded) /* If the end of the string is found and the string isn't finished yet */
-      {
-        stringEnded = true;
-      } else if (stringEnded == true) /* If the string is done and we found a char that is not blank it means we have an error */
-      {
-        if (line->type == string) /* If line type is string */
-          printError(line, "Invalid characters after string \"%s\"", line->lineData.string.str);
-        else /* If line type is struct */
-          printError(line, "Invalid characters after string \"%s\"", line->lineData.strct.str);
-        return;
-      } else if (!stringStarted) /* If string hasn't found yet and characters are found */
-      {
-        printError(line, "Invalid characters before string. The string must start with a \" and end with \"!");
-        return;
-      } else { /* If we in the string, copy the char to it's place */
-        if (line->type == string) /* If line type is string */
-          line->lineData.string.str[j++] = str[i];
-        else /* If line type is struct */
-          line->lineData.strct.str[j++] = str[i];
-      }
+      stringStarted = true;
+    } else if (stringStarted && str[i] == '\"' && !stringEnded) /* If the end of the string is found and the string isn't finished yet */
+    {
+      stringEnded = true;
+    } else if (!isblank(str[i]) && stringEnded == true) /* If the string is done and we found a char that is not blank it means we have an error */
+    {
+      if (line->type == string) /* If line type is string */
+        printError(line, "Invalid characters after string \"%s\"", line->lineData.string.str);
+      else /* If line type is struct */
+        printError(line, "Invalid characters after string \"%s\"", line->lineData.strct.str);
+      return;
+    } else if (!isblank(str[i]) && !stringStarted) /* If string hasn't found yet and characters are found */
+    {
+      printError(line, "Invalid characters before string. The string must start with a \" and end with \"!");
+      return;
+    } else if (stringStarted && !stringEnded) { /* If we in the string, copy the char to it's place */
+      if (line->type == string) /* If line type is string */
+        line->lineData.string.str[j++] = str[i];
+      else /* If line type is struct */
+        line->lineData.strct.str[j++] = str[i];
     }
   }
 
@@ -279,6 +294,11 @@ void analyzeString(line_t *line, char str[])
     line->lineData.strct.str[j] = 0;
 }
 
+/**
+* This function analyzes an instruction, it checks if the operand are valid and fit to the operation and inform of errors.
+* Parameters: The pointer to the line type, the amount of ops received, first operand and second operand as strings.
+* Return value: None.
+*/
 void analyzeInstruction(line_t *line, int ops, char op1[], char op2[])
 {
   char temp[MAX_VALUE_LENGTH];
@@ -402,6 +422,11 @@ void analyzeInstruction(line_t *line, int ops, char op1[], char op2[])
   }
 }
 
+/**
+* This function analyzes an operand and finds it's type.
+* Parameters: The pointer to the line type and the operand' string.
+* Return value: The operand formatted (operand type).
+*/
 operand_t analyzeOperand(line_t *line, char *operand)
 {
   operand_t op;
@@ -447,6 +472,11 @@ operand_t analyzeOperand(line_t *line, char *operand)
   return op;
 }
 
+/**
+* This function checks if the string is a valid register.
+* Parameters: The string to be checked.
+* Return value: The register type that specifices which register is it or -1 if not found.
+*/
 register_t isRegister(char *operand)
 {
   /* Check if is a valid register */
@@ -470,6 +500,11 @@ register_t isRegister(char *operand)
     return -1;
 }
 
+/**
+* This function checks if a given string is a valid integer and in correct range.
+* Parameters: The pointer to the line type, the string and the range in bits.
+* Return value: True if it is valid integer and in range or false otherwise.
+*/
 bool stringIsValidInt(line_t *line, char str[], int rangeBits)
 {
   int i;
@@ -505,6 +540,11 @@ bool stringIsValidInt(line_t *line, char str[], int rangeBits)
   return true;
 }
 
+/**
+* This function checks for a label in the line. It would set it in the line pointer and remove it from the input.
+* Parameters: The pointer to the line type.
+* Return value: None.
+*/
 void checkForLabel(line_t *line)
 {
   char label[MAX_LINE_LENGTH]; /* Max label legnth even if it is over the max of the valid label length */
@@ -529,6 +569,11 @@ void checkForLabel(line_t *line)
   }
 }
 
+/**
+* This function checks if a given string is a blank string.
+* Parameters: The string.
+* Return value: True if it is blank or false otherwise.
+*/
 bool checkIfEmpty(char str[])
 {
   int i = 0;
@@ -544,6 +589,11 @@ bool checkIfEmpty(char str[])
   return true;
 }
 
+/**
+* This function checks if a symbol is valid without printing errors
+* Parameters: The pointer to the line type and the string that contains the symbol.
+* Return value: True if the symbol is valid and false otherwise.
+*/
 bool checkIsSymbolValid(line_t *line, char *symbol)
 {
   int i;
@@ -558,6 +608,11 @@ bool checkIsSymbolValid(line_t *line, char *symbol)
   return true;
 }
 
+/**
+* This function checks if the label in the line is valid and printing errors if needed.
+* Parameters: The pointer to the line type.
+* Return value: True if the label is valid and false otherwise.
+*/
 void checkIsLabelValid(line_t *line)
 {
   int i;
